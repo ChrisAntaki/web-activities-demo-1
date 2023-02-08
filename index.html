@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Activities</title>
+    <script src="https://cdn.jsdelivr.net/npm/web-activities/activities.min.js"></script>
+    <style>
+      button {
+        display: block;
+        margin: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <button class="redirect">Redirect</button>
+    <button class="popup">Popup</button>
+    <button class="iframe">Iframe</button>
+    <iframe src="./host.html" frameborder="0"></iframe>
+
+    <script>
+      (window.ACTIVITIES = window.ACTIVITIES || []).push(({ ports }) => {
+        const iframe = document.querySelector("iframe");
+        const resultId = "ABC";
+        const url = "./host.html";
+        const args = {};
+        const options = {};
+
+        function handleResult(resultId) {
+          ports.onResult(resultId, (port) => {
+            port.acceptResult().then((result) => {
+              console.log(result);
+            });
+          });
+        }
+
+        handleResult(resultId);
+        handleResult(resultId);
+        handleResult("XYZ");
+
+        document.querySelector(".redirect").onclick = (e) => {
+          console.log("Redirecting...");
+          ports.open(resultId, url, "_top", args, options);
+        };
+        document.querySelector(".popup").onclick = (e) => {
+          console.log("Popping...");
+          ports.open(resultId, url, "_blank", args, options);
+        };
+        document.querySelector(".iframe").onclick = (e) => {
+          console.log("Iframing...");
+          ports.openIframe(iframe, url, { x: 1 }).then(async (port) => {
+            // Check origin properties.
+            const result = await port.acceptResult();
+            console.log(result);
+          });
+          ports.openIframe(iframe, url, { x: 2 }).then(async (port) => {
+            // Check origin properties.
+            const result = await port.acceptResult();
+            console.log(result);
+          });
+        };
+      });
+    </script>
+  </body>
+</html>
